@@ -137,7 +137,7 @@ int Browser::CreateFrame(std::string url, int width, int height)
     browser_settings.windowless_frame_rate = 30;
     
     // Create the first browser window.
-    CefBrowserHost::CreateBrowserSync(info, handler.get(), url, browser_settings, NULL);
+    CefBrowserHost::CreateBrowserSync(info, handler.get(), url, browser_settings, NULL,NULL);
     GST_INFO("CefBrowserHost::CreateBrowserSync");
 
     return 0;
