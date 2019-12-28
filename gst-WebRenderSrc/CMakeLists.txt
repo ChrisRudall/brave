@@ -17,7 +17,7 @@ set_property(GLOBAL PROPERTY OS_FOLDERS ON)
 set(GST_INSTALL_BASE "${CMAKE_SOURCE_DIR}/third_party" CACHE INTERNAL "Path to the GStreamer install base")
 
 # Specify the CEF distribution version.
-set(CEF_VERSION "3.3497.1836.gb472a8d")
+set(CEF_VERSION "78.3.9%2Bgc7345f2%2Bchromium-78.0.3904.108")
 
 #Need a build of Gstreamer with WebRTC fixes
 set(GST_REQUIRED 1.14.3)
