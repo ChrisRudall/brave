@@ -10,10 +10,10 @@ Client::~Client()
 {
 }
 
-bool Client::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
+void Client::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
     //Call listener
-    #return listener && 
+    //return listener && 
         listener->GetViewRect(rect);
 }
 
