@@ -2,53 +2,80 @@
 # reserved. Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file.
 
-# Download the CEF binary distribution for |platform| and |version| to
-# |download_dir|. The |CEF_ROOT| variable will be set in global scope pointing
-# to the extracted location.
-# Visit http://opensource.spotify.com/cefbuilds/index.html for the list of
-# supported platforms and versions.
+# See the included README.md file for usage instructions.
 
-function(DownloadCEF platform version escapedversion download_dir)
-  # Specify the binary distribution type and download directory.
-  set(CEF_DISTRIBUTION "cef_binary_${version}_${platform}_minimal")
-  set(CEF_DISTRIBUTION_ESC "cef_binary_${escapedversion}_${platform}_minimal")
+cmake_minimum_required(VERSION 2.8.12.1)
+cmake_policy(SET CMP0074 OLD)
+# Only generate Debug and Release configuration types.
+set(CMAKE_CONFIGURATION_TYPES Release Debug)
 
-  set(CEF_DOWNLOAD_DIR "${download_dir}")
+# Project name.
+project(gst-WebRenderSrc)
 
-  # The location where we expect the extracted binary distribution.
-  set(CEF_ROOT "${CEF_DOWNLOAD_DIR}/${CEF_DISTRIBUTION}" CACHE INTERNAL "CEF_ROOT")
+# Use folders in the resulting project files.
+set_property(GLOBAL PROPERTY OS_FOLDERS ON)
+set(GST_INSTALL_BASE "${CMAKE_SOURCE_DIR}/third_party" CACHE INTERNAL "Path to the GStreamer install base")
 
-  # Download and/or extract the binary distribution if necessary.
-  if(NOT IS_DIRECTORY "${CEF_ROOT}")
-    set(CEF_DOWNLOAD_FILENAME "${CEF_DISTRIBUTION_ESC}.tar.bz2")
-    set(CEF_DOWNLOAD_PATH "${CEF_DOWNLOAD_DIR}/${CEF_DOWNLOAD_FILENAME}")
-    # set(CEF_DOWNLOAD_PATH "${CEF_DOWNLOAD_DIR}/cef_binary.tar.bz2")
+# Specify the CEF distribution version.
+set(CEF_VERSION "78.3.9+gc7345f2+chromium-78.0.3904.108")
+set(CEF_ESCAPED_VERSION "78.3.9%2Bgc7345f2%2Bchromium-78.0.3904.108")
 
-    if(NOT EXISTS "${CEF_DOWNLOAD_PATH}")
-      set(CEF_DOWNLOAD_URL "http://opensource.spotify.com/cefbuilds/${CEF_DOWNLOAD_FILENAME}")
+#Need a build of Gstreamer with WebRTC fixes
+set(GST_REQUIRED 1.14.3)
+set(GLIB_REQUIRED 2.58.1)
 
-      # Download the SHA1 hash for the binary distribution.
-      message(STATUS "Downloading ${CEF_DOWNLOAD_PATH}.sha1...")
-      file(DOWNLOAD "${CEF_DOWNLOAD_URL}.sha1" "${CEF_DOWNLOAD_PATH}.sha1")
-      file(READ "${CEF_DOWNLOAD_PATH}.sha1" CEF_SHA1)
-
-      # Download the binary distribution and verify the hash.
-      message(STATUS "Downloading ${CEF_DOWNLOAD_PATH}...")
-      file(
-        DOWNLOAD "${CEF_DOWNLOAD_URL}" "${CEF_DOWNLOAD_PATH}"
-        EXPECTED_HASH SHA1=${CEF_SHA1}
-        SHOW_PROGRESS
-        )
-    endif()
-
-    # Extract the binary distribution.
-    message(STATUS "Extracting ${CEF_DOWNLOAD_PATH}...")
-    execute_process(
-      COMMAND ${CMAKE_COMMAND} -E tar xzf "${CEF_DOWNLOAD_DIR}/${CEF_DOWNLOAD_FILENAME}" 
-      WORKING_DIRECTORY ${CEF_DOWNLOAD_DIR}
-      )
+# Determine the platform.
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+  set(CEF_PLATFORM "macosx64")
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+  if(CMAKE_SIZEOF_VOID_P MATCHES 8)
+    set(CEF_PLATFORM "linux64")
+  else()
+    set(CEF_PLATFORM "linux32")
   endif()
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+  if(CMAKE_SIZEOF_VOID_P MATCHES 8)
+    set(CEF_PLATFORM "windows64")
+  else()
+    set(CEF_PLATFORM "windows32")
+  endif()
+endif()
 
-  # set(CEF_DIR "${CEF_ROOT}")
-  # message("CEF_DIR IS: ${CEF_DIR}/${CEF_DOWNLOAD_FILENAME}")
-endfunction()
+set(PROJECT_ARCH "x86_64")
+set(CMAKE_BUILD_TYPE "Release")
+
+include(GNUInstallDirs)
+
+# Add this project's cmake/ directory to the module path.
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# Download and extract the CEF binary distribution (executes DownloadCEF.cmake).
+include(DownloadCEF)
+include(FindPkgConfig)
+DownloadCEF("${CEF_PLATFORM}" "${CEF_VERSION}" "${CEF_ESCAPED_VERSION}" "${CMAKE_SOURCE_DIR}/third_party/cef")
+
+# Add the CEF binary distribution's cmake/ directory to the module path.
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
+
+# Load the CEF configuration (executes FindCEF.cmake).
+find_package(CEF REQUIRED)
+
+# find GStreamer packages
+pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0>=${GST_REQUIRED})
+pkg_check_modules(GSTREAMER_BASE REQUIRED gstreamer-base-1.0>=${GST_REQUIRED})
+pkg_check_modules(GSTREAMER_VIDEO REQUIRED gstreamer-video-1.0>=${GST_REQUIRED})
+
+#Find getText
+find_package(Gettext REQUIRED)
+
+set(CMAKE_INSTALL_GST_PLUGINS_DIR ${CMAKE_INSTALL_LIBDIR}/gstreamer-1.0)
+
+# Include the libcef_dll_wrapper target (executes libcef_dll/CMakeLists.txt).
+add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+message(STATUS "Compiling : ${PROJECT_NAME}-${PROJECT_VERSION}")
+
+add_subdirectory(src)
