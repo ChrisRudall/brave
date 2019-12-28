@@ -19,7 +19,9 @@ function(DownloadCEF platform version download_dir)
   # Download and/or extract the binary distribution if necessary.
   if(NOT IS_DIRECTORY "${CEF_ROOT}")
     set(CEF_DOWNLOAD_FILENAME "${CEF_DISTRIBUTION}.tar.bz2")
-    set(CEF_DOWNLOAD_PATH "${CEF_DOWNLOAD_DIR}/${CEF_DOWNLOAD_FILENAME}")
+    #set(CEF_DOWNLOAD_PATH "${CEF_DOWNLOAD_DIR}/${CEF_DOWNLOAD_FILENAME}")
+        set(CEF_DOWNLOAD_PATH "${CEF_DOWNLOAD_DIR}/cef_binary.tar.bz2")
+
     if(NOT EXISTS "${CEF_DOWNLOAD_PATH}")
       set(CEF_DOWNLOAD_URL "http://opensource.spotify.com/cefbuilds/${CEF_DOWNLOAD_FILENAME}")
 
