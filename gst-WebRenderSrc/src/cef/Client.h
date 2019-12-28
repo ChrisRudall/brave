@@ -31,7 +31,7 @@ public:
         return this;
     }
     
-    virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
+    virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
     virtual void OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const RectList& rects, const void* buffer, int width, int height) override;
 
     IMPLEMENT_REFCOUNTING(Client);
