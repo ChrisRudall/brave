@@ -62,6 +62,7 @@ int Browser::Init(void *webRenderSrc, void *push_frame)
     // calling this file to runder the renders
     ///
     CefString(&settings.browser_subprocess_path).FromASCII("cefsubprocess");
+       CefString(&settings.locales_dir_path).FromASCII("/usr/local/lib/locales");
 
     #if defined(OS_MACOSX)
     CefString(&settings.framework_dir_path).FromASCII("/usr/local/Frameworks/Chromium Embedded Framework.framework");
